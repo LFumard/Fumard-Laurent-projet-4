@@ -10,7 +10,7 @@ public class Ticket {
     private double price;
     private Date inTime;
     private Date outTime;
-
+    
     public int getId() {
         return id;
     }
@@ -36,7 +36,7 @@ public class Ticket {
     }
 
     public double getPrice() {
-        return price;
+        return ((int) (price * 100)) / 100.0;
     }
 
     public void setPrice(double price) {

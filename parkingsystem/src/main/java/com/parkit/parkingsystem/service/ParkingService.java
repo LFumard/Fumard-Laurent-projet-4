@@ -35,6 +35,12 @@ public class ParkingService {
                 parkingSpot.setAvailable(false);
                 parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark it's availability as false
 
+                // Message d'accueil fidélité
+                System.out.println("Début recherche Fidélité");
+                if(ticketDAO.getNbTicket(vehicleRegNumber) > 0 ){
+                    System.out.println("Heureux de vous revoir ! En tant qu’utilisateur régulier de notre parking, vous allez obtenir une remise de 5%");
+                }
+
                 Date inTime = new Date();
                 Ticket ticket = new Ticket();
                 //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
@@ -65,8 +71,9 @@ public class ParkingService {
         try{
             ParkingType parkingType = getVehichleType();
             parkingNumber = parkingSpotDAO.getNextAvailableSlot(parkingType);
+            System.out.println("Parking NUMBER : " + parkingNumber);
             if(parkingNumber > 0){
-                parkingSpot = new ParkingSpot(parkingNumber,parkingType, true);
+                parkingSpot = new ParkingSpot(parkingNumber,parkingType, false);
             }else{
                 throw new Exception("Error fetching parking number from DB. Parking slots might be full");
             }
@@ -99,11 +106,19 @@ public class ParkingService {
 
     public void processExitingVehicle() {
         try{
+          
             String vehicleRegNumber = getVehichleRegNumber();
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
             Date outTime = new Date();
+            boolean boFidelite = false;
+
+            
+            // Prise en compte de la fidélité
+            if(ticketDAO.getNbTicket(vehicleRegNumber) > 0) 
+              boFidelite = true;
+            
             ticket.setOutTime(outTime);
-            fareCalculatorService.calculateFare(ticket);
+            fareCalculatorService.calculateFare(ticket, boFidelite);
             if(ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
